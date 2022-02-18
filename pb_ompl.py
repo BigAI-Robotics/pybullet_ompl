@@ -59,6 +59,7 @@ class PbOMPLRobot():
         Get joint bounds.
         By default, read from pybullet
         '''
+        self.joint_bounds = []
         for i, joint_id in enumerate(self.joint_idx):
             joint_info = p.getJointInfo(self.id, joint_id)
             low = joint_info[8]  # low bounds
