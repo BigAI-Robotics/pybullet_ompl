@@ -7,7 +7,8 @@ except ImportError:
     # subdirectory of the parent directory called "py-bindings."
     import sys
     from os.path import abspath, dirname, join
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), './ompl/py-bindings'))
+    sys.path.insert(
+        0, join(dirname(dirname(abspath(__file__))), './ompl/py-bindings'))
     # sys.path.insert(0, join(dirname(abspath(__file__)), '../whole-body-motion-planning/src/ompl/py-bindings'))
     print(sys.path)
     from ompl import util as ou
@@ -59,13 +60,15 @@ class PbOMPLRobot():
         Get joint bounds.
         By default, read from pybullet
         '''
+        joint_bounds = []
         for i, joint_id in enumerate(self.joint_idx):
             joint_info = p.getJointInfo(self.id, joint_id)
             low = joint_info[8]  # low bounds
             high = joint_info[9]  # high bounds
             if low < high:
-                self.joint_bounds.append([low, high])
-        print("Joint bounds: {}".format(self.joint_bounds))
+                joint_bounds.append([low, high])
+        self.joint_bounds = joint_bounds
+        # print("Joint bounds: {}".format(self.joint_bounds))
         return self.joint_bounds
 
     def get_cur_state(self):
@@ -187,10 +190,10 @@ class PbOMPL():
         return True
 
     def _setup_collision_detection(self,
-                                  robot,
-                                  obstacles,
-                                  self_collisions=True,
-                                  allow_collision_links=[]):
+                                   robot,
+                                   obstacles,
+                                   self_collisions=True,
+                                   allow_collision_links=[]):
         self.check_link_pairs = utils.get_self_link_pairs(
             robot.id, robot.joint_idx) if self_collisions else []
         moving_links = frozenset([
@@ -306,7 +309,7 @@ class PbOMPL():
         self.space.set_state_sampler(state_sampler)
 
     # -------------
-    # Util 
+    # Util
     # ------------
 
     def state_to_list(self, state):
