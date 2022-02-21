@@ -16,8 +16,10 @@ except ImportError:
     from ompl import geometric as og
 
 import copy
+import math
 import time
 from itertools import product
+import numpy as np
 
 import pybullet as p
 
@@ -47,7 +49,7 @@ class PbOMPLRobot():
         self.num_dim = len(joint_idx)
         self.joint_idx = joint_idx
         print(self.joint_idx)
-        self.joint_bounds = []
+        self.get_joint_bounds()
 
         self.reset()
 
@@ -67,12 +69,32 @@ class PbOMPLRobot():
             high = joint_info[9]  # high bounds
             if low < high:
                 joint_bounds.append([low, high])
+            else:
+                if joint_info[2] == p.JOINT_REVOLUTE:
+                    joint_bounds.append([-math.pi, math.pi])
+                else:
+                    joint_bounds.append([0, 0])
         self.joint_bounds = joint_bounds
         # print("Joint bounds: {}".format(self.joint_bounds))
         return self.joint_bounds
 
     def get_cur_state(self):
-        return copy.deepcopy(self.state)
+        state = []
+        for i, joint in enumerate(self.joint_idx):
+            joint_position = p.getJointState(self.id, joint)[0]
+            joint_bound = self.joint_bounds[i][1] - self.joint_bounds[i][0]
+            while not (joint_position >= self.joint_bounds[i][0]
+                       and joint_position <= self.joint_bounds[i][1]):
+                if p.getJointInfo(self.id, joint)[2] != p.JOINT_REVOLUTE:
+                    break
+                if joint_position < self.joint_bounds[i][0]:
+                    joint_position += joint_bound
+                else:
+                    joint_position -= joint_bound
+            state.append(joint_position)
+
+        self.state = state
+        return copy.deepcopy(state)
 
     def set_state(self, state):
         '''
